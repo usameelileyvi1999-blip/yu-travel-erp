@@ -63,6 +63,11 @@ export default function Page() {
   room_type: '',
   board_type: '',
   extra_service_name: '',
+  package_has_hotel: false,
+  package_has_transfer: true,
+  package_has_tour: false,
+  package_has_flight: false,
+  package_flight_note: '',
   customer_name: '',
   customer_phone: '',
   agency_name: '',
@@ -180,7 +185,7 @@ export default function Page() {
     if (cs.data) setCompanySettings(cs.data)
   }
 
-  function update(key: string, value: string) {
+  function update(key: string, value: any) {
     setForm((old) => ({ ...old, [key]: value }))
   }
 
@@ -214,10 +219,18 @@ export default function Page() {
     const cost = Number(form.cost_amount || 0)
     const pax = Number(form.pax_adult || 0)
 
+    const requiresHotel =
+      form.reservation_type === 'transfer' ||
+      form.reservation_type === 'hotel' ||
+      (form.reservation_type === 'package' && (form.package_has_hotel || form.package_has_transfer || form.package_has_tour))
+
     if (!form.customer_name.trim()) return alert('Müşteri adı zorunlu')
     if (!form.customer_phone.trim()) return alert('Telefon / WhatsApp zorunlu')
     if (!form.agency_name.trim()) return alert('Acente seçmelisin')
-    if (!form.hotel_name.trim()) return alert('Otel seçmelisin')
+    if (requiresHotel && !form.hotel_name.trim()) return alert('Otel / alış noktası seçmelisin')
+    if (form.reservation_type === 'package' && !form.package_name.trim()) return alert('Paket seçmelisin')
+    if (form.reservation_type === 'tour' && !form.tour_name.trim()) return alert('Tur seçmelisin')
+    if (form.reservation_type === 'package' && form.package_has_tour && !form.tour_name.trim()) return alert('Paket içindeki turu seçmelisin')
     if (!pax || pax < 1) return alert('PAX en az 1 olmalı')
     if (!form.sale_amount || sale <= 0) return alert('Satış tutarı zorunlu ve 0’dan büyük olmalı')
 
@@ -256,6 +269,11 @@ export default function Page() {
       room_type: form.room_type,
       board_type: form.board_type,
       extra_service_name: form.extra_service_name,
+      package_has_hotel: Boolean(form.package_has_hotel),
+      package_has_transfer: Boolean(form.package_has_transfer),
+      package_has_tour: Boolean(form.package_has_tour),
+      package_has_flight: Boolean(form.package_has_flight),
+      package_flight_note: form.package_flight_note,
       hotel_name: form.hotel_name,
       region_name: form.region_name,
       pax_adult: pax,
@@ -353,6 +371,11 @@ export default function Page() {
       room_type: r.room_type || '',
       board_type: r.board_type || '',
       extra_service_name: r.extra_service_name || '',
+      package_has_hotel: Boolean(r.package_has_hotel),
+      package_has_transfer: r.package_has_transfer === false ? false : Boolean(r.package_has_transfer || r.reservation_type === 'package'),
+      package_has_tour: Boolean(r.package_has_tour),
+      package_has_flight: Boolean(r.package_has_flight),
+      package_flight_note: r.package_flight_note || '',
       customer_name: r.customer_name || '',
       customer_phone: r.customer_phone || '',
       agency_name: r.agency_name || '',
@@ -1102,6 +1125,17 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   <DetailItem label="Operasyon Tipi" value={selectedReservation.operation_type === 'arrival' ? 'Geliş' : 'Dönüş'} />
                   <DetailItem label="Tur" value={selectedReservation.tour_name} />
                   <DetailItem label="Paket" value={selectedReservation.package_name} />
+                  <DetailItem
+                    label="Paket İçeriği"
+                    value={selectedReservation.reservation_type === 'package'
+                      ? [
+                          selectedReservation.package_has_hotel ? 'Otel' : '',
+                          selectedReservation.package_has_transfer ? 'Transfer' : '',
+                          selectedReservation.package_has_tour ? 'Tur' : '',
+                          selectedReservation.package_has_flight ? 'Uçak Bileti' : '',
+                        ].filter(Boolean).join(' + ')
+                      : ''}
+                  />
                   <DetailItem label="Oda Tipi" value={selectedReservation.room_type} />
                   <DetailItem label="Konaklama Tipi" value={selectedReservation.board_type} />
                   <DetailItem label="Ek Servis" value={selectedReservation.extra_service_name} />
@@ -1232,14 +1266,53 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   )}
 
                   {form.reservation_type === 'package' && (
-                    <Select v={form.package_name} set={(x: string) => update('package_name', x)} p="Paket Seç" list={packages} />
+                    <>
+                      <Select v={form.package_name} set={(x: string) => update('package_name', x)} p="Paket Seç" list={packages} />
+
+                      <div style={{ ...packageOptionsBox, gridColumn: '1 / -1' }}>
+                        <strong style={{ color: '#111827' }}>Paket İçeriği</strong>
+                        <p style={{ margin: '6px 0 12px', color: '#6B7280', fontSize: 13 }}>
+                          Paketin içinde hangi hizmetler varsa işaretle. Böylece rezervasyon ve operasyon takibinde net görünür.
+                        </p>
+
+                        <div style={packageChecks}>
+                          <label style={checkLabel}>
+                            <input type="checkbox" checked={Boolean(form.package_has_transfer)} onChange={(e) => update('package_has_transfer', e.target.checked)} />
+                            Transfer
+                          </label>
+
+                          <label style={checkLabel}>
+                            <input type="checkbox" checked={Boolean(form.package_has_hotel)} onChange={(e) => update('package_has_hotel', e.target.checked)} />
+                            Otel
+                          </label>
+
+                          <label style={checkLabel}>
+                            <input type="checkbox" checked={Boolean(form.package_has_tour)} onChange={(e) => update('package_has_tour', e.target.checked)} />
+                            Tur
+                          </label>
+
+                          <label style={checkLabel}>
+                            <input type="checkbox" checked={Boolean(form.package_has_flight)} onChange={(e) => update('package_has_flight', e.target.checked)} />
+                            Uçak Bileti
+                          </label>
+                        </div>
+                      </div>
+                    </>
                   )}
 
-                  {form.reservation_type === 'hotel' && (
+                  {(form.reservation_type === 'hotel' || (form.reservation_type === 'package' && form.package_has_hotel)) && (
                     <>
                       <Select v={form.room_type} set={(x: string) => update('room_type', x)} p="Oda Tipi Seç" list={roomTypes} />
                       <Select v={form.board_type} set={(x: string) => update('board_type', x)} p="Konaklama Tipi Seç" list={boardTypes} />
                     </>
+                  )}
+
+                  {form.reservation_type === 'package' && form.package_has_tour && (
+                    <Select v={form.tour_name} set={(x: string) => update('tour_name', x)} p="Paket içindeki turu seç" list={tours} />
+                  )}
+
+                  {form.reservation_type === 'package' && form.package_has_flight && (
+                    <Input v={form.package_flight_note} set={(x: string) => update('package_flight_note', x)} p="Uçak bileti notu / PNR / rota" />
                   )}
 
                   <Select v={form.extra_service_name} set={(x: string) => update('extra_service_name', x)} p="Ek Servis Seç / Yok" list={extraServices} />
@@ -1442,6 +1515,32 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                     setOperationFrom(value)
                     setOperationTo(value)
                   }}>Yarın</button>
+                  <button style={grayButton} onClick={() => {
+                    const now = new Date()
+                    const first = new Date(now)
+                    first.setDate(now.getDate() - now.getDay() + 1)
+                    const last = new Date(first)
+                    last.setDate(first.getDate() + 6)
+                    setOperationFrom(first.toISOString().slice(0, 10))
+                    setOperationTo(last.toISOString().slice(0, 10))
+                    setOperationTypeFilter('all')
+                  }}>Bu Hafta</button>
+                  <button style={grayButton} onClick={() => {
+                    const now = new Date()
+                    const first = new Date(now.getFullYear(), now.getMonth(), 1)
+                    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                    setOperationFrom(first.toISOString().slice(0, 10))
+                    setOperationTo(last.toISOString().slice(0, 10))
+                    setOperationTypeFilter('all')
+                  }}>Bu Ay</button>
+                  <button style={grayButton} onClick={() => {
+                    setOperationTypeFilter('departure')
+                    const now = new Date()
+                    const last = new Date()
+                    last.setDate(now.getDate() + 45)
+                    setOperationFrom(today)
+                    setOperationTo(last.toISOString().slice(0, 10))
+                  }}>Yaklaşan Dönüşler</button>
                   <button style={grayButton} onClick={printDailyOperation}>Operasyon PDF</button>
                   <button style={button} onClick={exportDailyOperationExcel}>Operasyon Excel</button>
                 </div>
@@ -1978,6 +2077,32 @@ function FinanceTable({ finance, deleteFinance }: any) {
       </table>
     </div>
   )
+}
+
+
+const packageOptionsBox = {
+  border: '1px solid #E5E7EB',
+  background: '#F9FAFB',
+  borderRadius: 16,
+  padding: 16,
+}
+
+const packageChecks = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+  gap: 10,
+}
+
+const checkLabel = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  padding: '10px 12px',
+  borderRadius: 12,
+  background: 'white',
+  border: '1px solid #E5E7EB',
+  color: '#111827',
+  fontWeight: 700,
 }
 
 const loginPage = {
