@@ -1379,17 +1379,17 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
 
                 <div style={grid} className="yu-grid">
                   <div>
-                    <label style={label}>Başlangıç Tarihi</label>
+                    <label style={{ display: 'block', marginBottom: 6, fontWeight: 700, color: '#374151' }}>Başlangıç Tarihi</label>
                     <input style={input} type="date" value={operationFrom} onChange={(e) => setOperationFrom(e.target.value)} />
                   </div>
 
                   <div>
-                    <label style={label}>Bitiş Tarihi</label>
+                    <label style={{ display: 'block', marginBottom: 6, fontWeight: 700, color: '#374151' }}>Bitiş Tarihi</label>
                     <input style={input} type="date" value={operationTo} onChange={(e) => setOperationTo(e.target.value)} />
                   </div>
 
                   <div>
-                    <label style={label}>Operasyon Tipi</label>
+                    <label style={{ display: 'block', marginBottom: 6, fontWeight: 700, color: '#374151' }}>Operasyon Tipi</label>
                     <select style={input} value={operationTypeFilter} onChange={(e) => setOperationTypeFilter(e.target.value)}>
                       <option value="all">Tümü</option>
                       <option value="arrival">Geliş</option>
@@ -1398,7 +1398,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   </div>
 
                   <div>
-                    <label style={label}>Operasyon Durumu</label>
+                    <label style={{ display: 'block', marginBottom: 6, fontWeight: 700, color: '#374151' }}>Operasyon Durumu</label>
                     <select style={input} value={operationStatusFilter} onChange={(e) => setOperationStatusFilter(e.target.value)}>
                       <option value="all">Tümü</option>
                       <option value="option">Opsiyon</option>
@@ -1409,7 +1409,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   </div>
 
                   <div>
-                    <label style={label}>Acente</label>
+                    <label style={{ display: 'block', marginBottom: 6, fontWeight: 700, color: '#374151' }}>Acente</label>
                     <select style={input} value={operationAgencyFilter} onChange={(e) => setOperationAgencyFilter(e.target.value)}>
                       <option value="all">Tüm Acenteler</option>
                       {agencies.map((x: any) => <option key={x.id} value={x.name}>{x.name}</option>)}
@@ -1417,7 +1417,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   </div>
 
                   <div>
-                    <label style={label}>Otel</label>
+                    <label style={{ display: 'block', marginBottom: 6, fontWeight: 700, color: '#374151' }}>Otel</label>
                     <select style={input} value={operationHotelFilter} onChange={(e) => setOperationHotelFilter(e.target.value)}>
                       <option value="all">Tüm Oteller</option>
                       {hotels.map((x: any) => <option key={x.id} value={x.name}>{x.name}</option>)}
@@ -1425,7 +1425,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   </div>
 
                   <div>
-                    <label style={label}>Şoför</label>
+                    <label style={{ display: 'block', marginBottom: 6, fontWeight: 700, color: '#374151' }}>Şoför</label>
                     <select style={input} value={operationDriverFilter} onChange={(e) => setOperationDriverFilter(e.target.value)}>
                       <option value="all">Tüm Şoförler</option>
                       {drivers.map((d: any) => <option key={d.id} value={d.name || d.driver_name || d.full_name}>{d.name || d.driver_name || d.full_name || 'Şoför'}</option>)}
