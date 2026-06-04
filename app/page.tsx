@@ -46,27 +46,28 @@ export default function Page() {
   const [operationDate, setOperationDate] = useState(today)
   const [operationTypeFilter, setOperationTypeFilter] = useState('all')
 
-  const emptyForm = {
-    customer_name: '',
-    customer_phone: '',
-    agency_name: '',
-    hotel_name: '',
-    region_name: '',
-    operation_type: 'arrival',
-    service_date: today,
-    flight_code: '',
-    pickup_location: 'Antalya Airport',
-    return_date: '',
-    return_flight_code: '',
-    return_pickup_location: '',
-    pax_adult: '1',
-    vehicle_type: '',
-    sale_amount: '',
-    cost_amount: '',
-    payment_status: 'unpaid',
-    operation_status: 'option',
-    notes: '',
-  }
+ const emptyForm = {
+  reservation_type: 'transfer',
+  customer_name: '',
+  customer_phone: '',
+  agency_name: '',
+  hotel_name: '',
+  region_name: '',
+  operation_type: 'arrival',
+  service_date: today,
+  flight_code: '',
+  pickup_location: 'Antalya Airport',
+  return_date: '',
+  return_flight_code: '',
+  return_pickup_location: '',
+  pax_adult: '1',
+  vehicle_type: '',
+  sale_amount: '',
+  cost_amount: '',
+  payment_status: 'unpaid',
+  operation_status: 'option',
+  notes: '',
+}
 
   const [form, setForm] = useState(emptyForm)
 
@@ -204,10 +205,22 @@ export default function Page() {
     }
 
     const basePayload = {
+      reservation_type: form.reservation_type || 'transfer',
       customer_name: form.customer_name,
       customer_phone: form.customer_phone,
       agency_name: form.agency_name,
-      service_type: 'Airport Transfer',
+      service_type:
+        form.reservation_type === 'transfer'
+          ? 'Airport Transfer'
+          : form.reservation_type === 'hotel'
+          ? 'Hotel'
+          : form.reservation_type === 'tour'
+          ? 'Tour'
+          : form.reservation_type === 'package'
+          ? 'Package'
+          : form.reservation_type === 'flight'
+          ? 'Flight Ticket'
+          : 'Other',
       hotel_name: form.hotel_name,
       region_name: form.region_name,
       pax_adult: pax,
@@ -299,6 +312,7 @@ export default function Page() {
     setActive('Rezervasyonlar')
 
     setForm({
+      reservation_type: r.reservation_type || 'transfer',
       customer_name: r.customer_name || '',
       customer_phone: r.customer_phone || '',
       agency_name: r.agency_name || '',
@@ -668,7 +682,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
 
   function exportRowsToCsv(rows: any[], fileName: string) {
     const headers = [
-      'Voucher No', 'Acente', 'Tip', 'Tarih', 'Müşteri', 'Telefon', 'Otel', 'Bölge',
+      'Voucher No', 'Acente', 'Rezervasyon Tipi', 'Tip', 'Tarih', 'Müşteri', 'Telefon', 'Otel', 'Bölge',
       'Uçuş', 'Alış Noktası', 'PAX', 'Araç Tipi', 'Şoför', 'Plaka',
       'Karşılama Durumu', 'Operasyon Notu', 'Ödeme', 'Operasyon', 'Satış USD', 'Maliyet USD', 'Kâr USD',
     ]
@@ -676,6 +690,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
     const csvRows = rows.map((r: any) => [
       r.reservation_code || '',
       r.agency_name || '',
+      r.reservation_type || '',
       r.operation_type === 'arrival' ? 'Geliş' : 'Dönüş',
       r.service_date || '',
       r.customer_name || '',
@@ -1026,6 +1041,14 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   <DetailItem label="Müşteri" value={selectedReservation.customer_name} />
                   <DetailItem label="Telefon" value={selectedReservation.customer_phone} />
                   <DetailItem label="Acente" value={selectedReservation.agency_name} />
+                  <DetailItem label="Rezervasyon Tipi" value={
+                    selectedReservation.reservation_type === 'transfer' ? 'Transfer' :
+                    selectedReservation.reservation_type === 'hotel' ? 'Otel' :
+                    selectedReservation.reservation_type === 'tour' ? 'Tur' :
+                    selectedReservation.reservation_type === 'package' ? 'Paket' :
+                    selectedReservation.reservation_type === 'flight' ? 'Uçak Bileti' :
+                    selectedReservation.reservation_type || '-'
+                  } />
                   <DetailItem label="Otel" value={selectedReservation.hotel_name} />
                   <DetailItem label="Bölge" value={selectedReservation.region_name} />
                   <DetailItem label="Operasyon Tipi" value={selectedReservation.operation_type === 'arrival' ? 'Geliş' : 'Dönüş'} />
@@ -1088,6 +1111,15 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
 
                 <h3 style={sectionTitle}>1. Müşteri Bilgileri</h3>
                 <div style={grid} className="yu-grid">
+                  <select style={input} value={form.reservation_type} onChange={(e) => update('reservation_type', e.target.value)}>
+                    <option value="transfer">Transfer</option>
+                    <option value="hotel">Otel</option>
+                    <option value="tour">Tur</option>
+                    <option value="package">Paket</option>
+                    <option value="flight">Uçak Bileti</option>
+                    <option value="other">Diğer</option>
+                  </select>
+
                   <Input v={form.customer_name} set={(x: string) => update('customer_name', x)} p="Müşteri adı" />
                   <Input v={form.customer_phone} set={(x: string) => update('customer_phone', x)} p="Telefon / WhatsApp" />
                   <Select v={form.agency_name} set={(x: string) => update('agency_name', x)} p="Acente Seç" list={agencies} />
