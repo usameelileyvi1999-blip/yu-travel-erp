@@ -48,8 +48,13 @@ export default function Page() {
   const [reportFrom, setReportFrom] = useState(today)
   const [reportTo, setReportTo] = useState(today)
   const [reportType, setReportType] = useState('all')
-  const [operationDate, setOperationDate] = useState(today)
+  const [operationFrom, setOperationFrom] = useState(today)
+  const [operationTo, setOperationTo] = useState(today)
   const [operationTypeFilter, setOperationTypeFilter] = useState('all')
+  const [operationStatusFilter, setOperationStatusFilter] = useState('all')
+  const [operationAgencyFilter, setOperationAgencyFilter] = useState('all')
+  const [operationHotelFilter, setOperationHotelFilter] = useState('all')
+  const [operationDriverFilter, setOperationDriverFilter] = useState('all')
 
  const emptyForm = {
   reservation_type: 'transfer',
@@ -710,10 +715,21 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
   })
 
   const operationRows = reservations.filter((r) => {
-    const dateOk = r.service_date === operationDate
+    const serviceDate = String(r.service_date || '')
+    const dateOk = serviceDate >= operationFrom && serviceDate <= operationTo
     const typeOk = operationTypeFilter === 'all' || r.operation_type === operationTypeFilter
-    return dateOk && typeOk
+    const statusOk = operationStatusFilter === 'all' || r.operation_status === operationStatusFilter
+    const agencyOk = operationAgencyFilter === 'all' || r.agency_name === operationAgencyFilter
+    const hotelOk = operationHotelFilter === 'all' || r.hotel_name === operationHotelFilter
+    const driverOk = operationDriverFilter === 'all' || r.driver_name === operationDriverFilter
+
+    return dateOk && typeOk && statusOk && agencyOk && hotelOk && driverOk
   })
+
+  const operationArrivalCount = operationRows.filter((r) => r.operation_type === 'arrival').length
+  const operationDepartureCount = operationRows.filter((r) => r.operation_type === 'departure').length
+  const operationUnassignedCount = operationRows.filter((r) => !r.driver_name || !r.vehicle_plate).length
+  const operationCompletedCount = operationRows.filter((r) => r.operation_status === 'completed' || r.meeting_status === 'completed').length
 
   function exportRowsToCsv(rows: any[], fileName: string) {
     const headers = [
@@ -764,7 +780,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
   }
 
   function exportDailyOperationExcel() {
-    exportRowsToCsv(operationRows, `YU-Travel-Gunluk-Operasyon-${operationDate}.csv`)
+    exportRowsToCsv(operationRows, `YU-Travel-Operasyon-${operationFrom}-${operationTo}.csv`)
   }
 
   function exportReservationsBackup() {
@@ -916,7 +932,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
   }
 
   function printDailyOperation() {
-    printOperationHtml(operationRows, operationTypeFilter, operationDate, operationDate, 'Günlük Operasyon Planı')
+    printOperationHtml(operationRows, operationTypeFilter, operationFrom, operationTo, 'Operasyon Planı')
   }
 
   function printFinanceReport() {
@@ -1350,20 +1366,84 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
 
           {active === 'Operasyon' && (
             <>
+              <div style={cards} className="yu-cards">
+                <Card title="Toplam İş" value={operationRows.length} />
+                <Card title="Geliş" value={operationArrivalCount} />
+                <Card title="Dönüş" value={operationDepartureCount} />
+                <Card title="Atanmamış" value={operationUnassignedCount} />
+                <Card title="Tamamlanan" value={operationCompletedCount} />
+              </div>
+
               <div style={box}>
-                <h2>Günlük Operasyon Planlama</h2>
+                <h2>Operasyon Planlama</h2>
 
-                <div style={toolbar}>
-                  <input style={inputSmall} type="date" value={operationDate} onChange={(e) => setOperationDate(e.target.value)} />
+                <div style={grid} className="yu-grid">
+                  <div>
+                    <label style={label}>Başlangıç Tarihi</label>
+                    <input style={input} type="date" value={operationFrom} onChange={(e) => setOperationFrom(e.target.value)} />
+                  </div>
 
-                  <select style={inputSmall} value={operationTypeFilter} onChange={(e) => setOperationTypeFilter(e.target.value)}>
-                    <option value="all">Tümü</option>
-                    <option value="arrival">Geliş</option>
-                    <option value="departure">Dönüş</option>
-                  </select>
+                  <div>
+                    <label style={label}>Bitiş Tarihi</label>
+                    <input style={input} type="date" value={operationTo} onChange={(e) => setOperationTo(e.target.value)} />
+                  </div>
 
-                  <button style={grayButton} onClick={printDailyOperation}>Günlük Operasyon PDF</button>
-                  <button style={button} onClick={exportDailyOperationExcel}>Günlük Operasyon Excel</button>
+                  <div>
+                    <label style={label}>Operasyon Tipi</label>
+                    <select style={input} value={operationTypeFilter} onChange={(e) => setOperationTypeFilter(e.target.value)}>
+                      <option value="all">Tümü</option>
+                      <option value="arrival">Geliş</option>
+                      <option value="departure">Dönüş</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={label}>Operasyon Durumu</label>
+                    <select style={input} value={operationStatusFilter} onChange={(e) => setOperationStatusFilter(e.target.value)}>
+                      <option value="all">Tümü</option>
+                      <option value="option">Opsiyon</option>
+                      <option value="confirmed">Onaylandı</option>
+                      <option value="completed">Tamamlandı</option>
+                      <option value="cancelled">İptal</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={label}>Acente</label>
+                    <select style={input} value={operationAgencyFilter} onChange={(e) => setOperationAgencyFilter(e.target.value)}>
+                      <option value="all">Tüm Acenteler</option>
+                      {agencies.map((x: any) => <option key={x.id} value={x.name}>{x.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={label}>Otel</label>
+                    <select style={input} value={operationHotelFilter} onChange={(e) => setOperationHotelFilter(e.target.value)}>
+                      <option value="all">Tüm Oteller</option>
+                      {hotels.map((x: any) => <option key={x.id} value={x.name}>{x.name}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label style={label}>Şoför</label>
+                    <select style={input} value={operationDriverFilter} onChange={(e) => setOperationDriverFilter(e.target.value)}>
+                      <option value="all">Tüm Şoförler</option>
+                      {drivers.map((d: any) => <option key={d.id} value={d.name || d.driver_name || d.full_name}>{d.name || d.driver_name || d.full_name || 'Şoför'}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div style={{ ...toolbar, marginTop: 16 }}>
+                  <button style={grayButton} onClick={() => { setOperationFrom(today); setOperationTo(today) }}>Bugün</button>
+                  <button style={grayButton} onClick={() => {
+                    const tomorrow = new Date()
+                    tomorrow.setDate(tomorrow.getDate() + 1)
+                    const value = tomorrow.toISOString().slice(0, 10)
+                    setOperationFrom(value)
+                    setOperationTo(value)
+                  }}>Yarın</button>
+                  <button style={grayButton} onClick={printDailyOperation}>Operasyon PDF</button>
+                  <button style={button} onClick={exportDailyOperationExcel}>Operasyon Excel</button>
                 </div>
               </div>
 
@@ -1746,50 +1826,84 @@ function ReservationTable({ rows, edit, del, pdf, wa, detail }: any) {
   )
 }
 function OperationTable({ rows, drivers, fleet, updateOperationField, pdf, wa }: any) {
+  function driverLabel(d: any) {
+    return d.name || d.driver_name || d.full_name || d.phone || 'Şoför'
+  }
+
   return (
     <div style={box}>
-      <h2>Operasyon Listesi</h2>
+      <h2>Operasyon İş Listesi</h2>
+      <p style={{ color: '#6B7280', marginTop: -6 }}>
+        Tarih aralığına göre gelen tüm operasyon işleri. Satır üzerinden şoför, plaka, karşılama durumu ve operasyon notu güncellenebilir.
+      </p>
 
       <table style={table}>
         <thead>
           <tr>
+            <th style={th}>Tarih</th>
+            <th style={th}>Saat</th>
             <th style={th}>Voucher</th>
             <th style={th}>Tip</th>
-            <th style={th}>Tarih</th>
             <th style={th}>Müşteri</th>
+            <th style={th}>Telefon</th>
             <th style={th}>Acente</th>
-            <th style={th}>Otel</th>
+            <th style={th}>Otel / Bölge</th>
+            <th style={th}>Uçuş</th>
+            <th style={th}>Alış Noktası</th>
             <th style={th}>PAX</th>
+            <th style={th}>Araç Tipi</th>
             <th style={th}>Şoför</th>
             <th style={th}>Plaka</th>
             <th style={th}>Karşılama</th>
-            <th style={th}>Not</th>
+            <th style={th}>Operasyon Notu</th>
             <th style={th}>İşlem</th>
           </tr>
         </thead>
 
         <tbody>
+          {rows.length === 0 && (
+            <tr>
+              <td style={td} colSpan={17}>Bu filtrelerde operasyon bulunamadı.</td>
+            </tr>
+          )}
+
           {rows.map((r: any) => (
             <tr key={r.id}>
-              <td style={td}>{r.reservation_code}</td>
-              <td style={td}>{r.operation_type === 'arrival' ? 'Geliş' : 'Dönüş'}</td>
-              <td style={td}>{r.service_date}</td>
-              <td style={td}>{r.customer_name}</td>
+              <td style={td}>{r.service_date || '-'}</td>
+              <td style={td}>
+                <input
+                  style={miniInput}
+                  placeholder="Saat"
+                  defaultValue={r.operation_time || ''}
+                  onBlur={(e) => updateOperationField(r.id, 'operation_time', e.target.value)}
+                />
+              </td>
+              <td style={td}>{r.reservation_code || '-'}</td>
+              <td style={td}>{r.operation_type === 'arrival' ? 'Geliş' : r.operation_type === 'departure' ? 'Dönüş' : r.operation_type || '-'}</td>
+              <td style={td}>{r.customer_name || '-'}</td>
+              <td style={td}>{r.customer_phone || '-'}</td>
               <td style={td}>{r.agency_name || '-'}</td>
-              <td style={td}>{r.hotel_name}</td>
-              <td style={td}>{r.pax_adult}</td>
+              <td style={td}>
+                <strong>{r.hotel_name || '-'}</strong>
+                <br />
+                <span style={{ color: '#6B7280' }}>{r.region_name || '-'}</span>
+              </td>
+              <td style={td}>{r.flight_code || '-'}</td>
+              <td style={td}>{r.pickup_location || '-'}</td>
+              <td style={td}>{r.pax_adult || '-'}</td>
+              <td style={td}>{r.vehicle_type || '-'}</td>
 
               <td style={td}>
                 <select style={miniInput} value={r.driver_name || ''} onChange={(e) => updateOperationField(r.id, 'driver_name', e.target.value)}>
                   <option value="">Şoför seç</option>
-                  {drivers.map((d: any) => <option key={d.id} value={d.name}>{d.name}</option>)}
+                  {drivers.map((d: any) => <option key={d.id} value={driverLabel(d)}>{driverLabel(d)}</option>)}
                 </select>
               </td>
 
               <td style={td}>
                 <select style={miniInput} value={r.vehicle_plate || ''} onChange={(e) => updateOperationField(r.id, 'vehicle_plate', e.target.value)}>
                   <option value="">Plaka seç</option>
-                  {fleet.map((v: any) => <option key={v.id} value={v.plate}>{v.plate}</option>)}
+                  {fleet.map((v: any) => <option key={v.id} value={v.plate || v.name}>{v.plate || v.name || 'Araç'}</option>)}
                 </select>
               </td>
 
@@ -1804,12 +1918,17 @@ function OperationTable({ rows, drivers, fleet, updateOperationField, pdf, wa }:
               </td>
 
               <td style={td}>
-                <input style={miniInput} defaultValue={r.operation_note || ''} onBlur={(e) => updateOperationField(r.id, 'operation_note', e.target.value)} />
+                <input
+                  style={miniInput}
+                  placeholder="Operasyon notu"
+                  defaultValue={r.operation_note || ''}
+                  onBlur={(e) => updateOperationField(r.id, 'operation_note', e.target.value)}
+                />
               </td>
 
               <td style={td}>
                 <button style={smallBlue} onClick={() => pdf(r)}>Voucher</button>
-                <button style={smallGreen} onClick={() => wa(r)}>WhatsApp</button>
+                <button style={smallGreen} onClick={() => wa(r)}>Müşteri WA</button>
               </td>
             </tr>
           ))}
