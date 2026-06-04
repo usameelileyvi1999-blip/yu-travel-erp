@@ -1,4 +1,6 @@
 import Link from "next/link";
+import ReservationWorkspace from "@/components/ReservationWorkspace";
+import Link from "next/link";
 
 type PageConfig = {
   title: string;
@@ -308,7 +310,33 @@ export default async function DynamicPage({
     subtitle: "Bu modül için sayfa hazırlandı.",
     type: "dashboard" as const,
   };
+  if (path === "/reservations/new") {
+    return <ReservationWorkspace mode="new" />;
+  }
 
+  if (path === "/reservations") {
+    return <ReservationWorkspace mode="list" />;
+  }
+
+  if (path === "/operations/arrival") {
+    return <ReservationWorkspace mode="arrival" />;
+  }
+
+  if (path === "/operations/departure") {
+    return <ReservationWorkspace mode="departure" />;
+  }
+
+  if (path === "/operations/hotel") {
+    return <ReservationWorkspace mode="hotel" />;
+  }
+
+  if (path === "/operations/tour") {
+    return <ReservationWorkspace mode="tour" />;
+  }
+
+  if (path === "/vouchers") {
+    return <ReservationWorkspace mode="voucher" />;
+  }
   const columns = getColumns(page.type);
   const actions = getActions(page.type);
 
