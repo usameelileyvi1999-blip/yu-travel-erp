@@ -222,7 +222,7 @@ export default function Page() {
     const requiresHotel =
       form.reservation_type === 'transfer' ||
       form.reservation_type === 'hotel' ||
-      (form.reservation_type === 'package' && (form.package_has_hotel || form.package_has_transfer || form.package_has_tour))
+      (form.reservation_type === 'package' && (form.package_has_hotel || form.package_has_transfer))
 
     if (!form.customer_name.trim()) return alert('Müşteri adı zorunlu')
     if (!form.customer_phone.trim()) return alert('Telefon / WhatsApp zorunlu')
@@ -1196,9 +1196,13 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
               <div style={box}>
                 <h2>{editingId ? 'Rezervasyon Düzenle' : 'Yeni Rezervasyon Ekle'}</h2>
 
-                <h3 style={sectionTitle}>1. Müşteri Bilgileri</h3>
+                <h3 style={sectionTitle}>1. Rezervasyon Tipi</h3>
                 <div style={grid} className="yu-grid">
-                  <select style={input} value={form.reservation_type} onChange={(e) => update('reservation_type', e.target.value)}>
+                  <select
+                    style={input}
+                    value={form.reservation_type}
+                    onChange={(e) => update('reservation_type', e.target.value)}
+                  >
                     <option value="transfer">Transfer</option>
                     <option value="hotel">Otel</option>
                     <option value="tour">Tur</option>
@@ -1206,73 +1210,18 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                     <option value="flight">Uçak Bileti</option>
                     <option value="other">Diğer</option>
                   </select>
-
-                  <Input v={form.customer_name} set={(x: string) => update('customer_name', x)} p="Müşteri adı" />
-                  <Input v={form.customer_phone} set={(x: string) => update('customer_phone', x)} p="Telefon / WhatsApp" />
-                  <Select v={form.agency_name} set={(x: string) => update('agency_name', x)} p="Acente Seç" list={agencies} />
                 </div>
 
-                <h3 style={sectionTitle}>2. Operasyon Bilgileri</h3>
-                <div style={grid} className="yu-grid">
-                  <select style={input} value={form.operation_type} onChange={(e) => update('operation_type', e.target.value)}>
-                    <option value="arrival">Sadece Geliş</option>
-                    <option value="departure">Sadece Dönüş</option>
-                    <option value="roundtrip">Geliş + Dönüş</option>
-                  </select>
-
-                  <input style={input} type="date" value={form.service_date} onChange={(e) => update('service_date', e.target.value)} />
-
-                  <Select v={form.region_name} set={(x: string) => update('region_name', x)} p="Bölge Seç" list={regions} />
-                  <Select v={form.hotel_name} set={(x: string) => update('hotel_name', x)} p="Otel Seç" list={hotels} />
-                  <Select v={form.vehicle_type} set={(x: string) => update('vehicle_type', x)} p="Araç Tipi Seç" list={vehicleTypes} />
-
-                  <Input
-                    v={form.flight_code}
-                    set={(x: string) => update('flight_code', x)}
-                    p={form.operation_type === 'departure' ? 'Dönüş uçuş kodu' : 'Geliş uçuş kodu'}
-                  />
-
-                  <Input
-                    v={form.pickup_location}
-                    set={(x: string) => update('pickup_location', x)}
-                    p={form.operation_type === 'departure' ? 'Dönüş alış noktası' : 'Geliş alış noktası'}
-                  />
-
-                  {form.operation_type === 'roundtrip' && (
-                    <>
-                      <input
-                        style={input}
-                        type="date"
-                        value={form.return_date}
-                        onChange={(e) => update('return_date', e.target.value)}
-                      />
-
-                      <Input
-                        v={form.return_flight_code}
-                        set={(x: string) => update('return_flight_code', x)}
-                        p="Dönüş uçuş kodu"
-                      />
-
-                      <Input
-                        v={form.return_pickup_location}
-                        set={(x: string) => update('return_pickup_location', x)}
-                        p="Dönüş alış noktası / Otelden çıkış"
-                      />
-                    </>
-                  )}
-
-                  {form.reservation_type === 'tour' && (
-                    <Select v={form.tour_name} set={(x: string) => update('tour_name', x)} p="Tur Seç" list={tours} />
-                  )}
-
-                  {form.reservation_type === 'package' && (
-                    <>
+                {form.reservation_type === 'package' && (
+                  <>
+                    <h3 style={sectionTitle}>2. Paket İçeriği</h3>
+                    <div style={grid} className="yu-grid">
                       <Select v={form.package_name} set={(x: string) => update('package_name', x)} p="Paket Seç" list={packages} />
 
                       <div style={{ ...packageOptionsBox, gridColumn: '1 / -1' }}>
-                        <strong style={{ color: '#111827' }}>Paket İçeriği</strong>
+                        <strong style={{ color: '#111827' }}>Paketin içinde neler var?</strong>
                         <p style={{ margin: '6px 0 12px', color: '#6B7280', fontSize: 13 }}>
-                          Paketin içinde hangi hizmetler varsa işaretle. Böylece rezervasyon ve operasyon takibinde net görünür.
+                          Seçtiğin hizmetlere göre aşağıdaki alanlar otomatik açılır. Örneğin sadece otel + transfer paketi varsa tur ve uçak bileti alanları görünmez.
                         </p>
 
                         <div style={packageChecks}>
@@ -1297,27 +1246,112 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                           </label>
                         </div>
                       </div>
-                    </>
-                  )}
+                    </div>
+                  </>
+                )}
 
-                  {(form.reservation_type === 'hotel' || (form.reservation_type === 'package' && form.package_has_hotel)) && (
-                    <>
+                <h3 style={sectionTitle}>{form.reservation_type === 'package' ? '3' : '2'}. Müşteri Bilgileri</h3>
+                <div style={grid} className="yu-grid">
+                  <Input v={form.customer_name} set={(x: string) => update('customer_name', x)} p="Müşteri adı" />
+                  <Input v={form.customer_phone} set={(x: string) => update('customer_phone', x)} p="Telefon / WhatsApp" />
+                  <Select v={form.agency_name} set={(x: string) => update('agency_name', x)} p="Acente Seç" list={agencies} />
+                  <Input v={form.pax_adult} set={(x: string) => update('pax_adult', x)} p="PAX" />
+                </div>
+
+                {(form.reservation_type === 'transfer' || (form.reservation_type === 'package' && form.package_has_transfer)) && (
+                  <>
+                    <h3 style={sectionTitle}>{form.reservation_type === 'package' ? '4' : '3'}. Transfer Bilgileri</h3>
+                    <div style={grid} className="yu-grid">
+                      <select style={input} value={form.operation_type} onChange={(e) => update('operation_type', e.target.value)}>
+                        <option value="arrival">Sadece Geliş</option>
+                        <option value="departure">Sadece Dönüş</option>
+                        <option value="roundtrip">Geliş + Dönüş</option>
+                      </select>
+
+                      <input style={input} type="date" value={form.service_date} onChange={(e) => update('service_date', e.target.value)} />
+
+                      <Select v={form.region_name} set={(x: string) => update('region_name', x)} p="Bölge Seç" list={regions} />
+                      <Select v={form.hotel_name} set={(x: string) => update('hotel_name', x)} p="Otel / Bırakış Noktası Seç" list={hotels} />
+                      <Select v={form.vehicle_type} set={(x: string) => update('vehicle_type', x)} p="Araç Tipi Seç" list={vehicleTypes} />
+
+                      <Input
+                        v={form.flight_code}
+                        set={(x: string) => update('flight_code', x)}
+                        p={form.operation_type === 'departure' ? 'Dönüş uçuş kodu' : 'Geliş uçuş kodu'}
+                      />
+
+                      <Input
+                        v={form.pickup_location}
+                        set={(x: string) => update('pickup_location', x)}
+                        p={form.operation_type === 'departure' ? 'Dönüş alış noktası' : 'Geliş alış noktası'}
+                      />
+
+                      {form.operation_type === 'roundtrip' && (
+                        <>
+                          <input
+                            style={input}
+                            type="date"
+                            value={form.return_date}
+                            onChange={(e) => update('return_date', e.target.value)}
+                          />
+
+                          <Input
+                            v={form.return_flight_code}
+                            set={(x: string) => update('return_flight_code', x)}
+                            p="Dönüş uçuş kodu"
+                          />
+
+                          <Input
+                            v={form.return_pickup_location}
+                            set={(x: string) => update('return_pickup_location', x)}
+                            p="Dönüş alış noktası / Otelden çıkış"
+                          />
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {(form.reservation_type === 'hotel' || (form.reservation_type === 'package' && form.package_has_hotel)) && (
+                  <>
+                    <h3 style={sectionTitle}>{form.reservation_type === 'package' ? '5' : '3'}. Otel Bilgileri</h3>
+                    <div style={grid} className="yu-grid">
+                      <Select v={form.region_name} set={(x: string) => update('region_name', x)} p="Bölge Seç" list={regions} />
+                      <Select v={form.hotel_name} set={(x: string) => update('hotel_name', x)} p="Otel Seç" list={hotels} />
+                      <input style={input} type="date" value={form.service_date} onChange={(e) => update('service_date', e.target.value)} />
+                      <input style={input} type="date" value={form.return_date} onChange={(e) => update('return_date', e.target.value)} />
                       <Select v={form.room_type} set={(x: string) => update('room_type', x)} p="Oda Tipi Seç" list={roomTypes} />
                       <Select v={form.board_type} set={(x: string) => update('board_type', x)} p="Konaklama Tipi Seç" list={boardTypes} />
-                    </>
-                  )}
+                    </div>
+                  </>
+                )}
 
-                  {form.reservation_type === 'package' && form.package_has_tour && (
-                    <Select v={form.tour_name} set={(x: string) => update('tour_name', x)} p="Paket içindeki turu seç" list={tours} />
-                  )}
+                {(form.reservation_type === 'tour' || (form.reservation_type === 'package' && form.package_has_tour)) && (
+                  <>
+                    <h3 style={sectionTitle}>{form.reservation_type === 'package' ? '6' : '3'}. Tur Bilgileri</h3>
+                    <div style={grid} className="yu-grid">
+                      <Select v={form.tour_name} set={(x: string) => update('tour_name', x)} p={form.reservation_type === 'package' ? 'Paket içindeki turu seç' : 'Tur Seç'} list={tours} />
+                      <input style={input} type="date" value={form.service_date} onChange={(e) => update('service_date', e.target.value)} />
+                      <Select v={form.hotel_name} set={(x: string) => update('hotel_name', x)} p="Alış Oteli / Noktası Seç" list={hotels} />
+                      <Input v={form.pickup_location} set={(x: string) => update('pickup_location', x)} p="Alış noktası / not" />
+                    </div>
+                  </>
+                )}
 
-                  {form.reservation_type === 'package' && form.package_has_flight && (
-                    <Input v={form.package_flight_note} set={(x: string) => update('package_flight_note', x)} p="Uçak bileti notu / PNR / rota" />
-                  )}
+                {(form.reservation_type === 'flight' || (form.reservation_type === 'package' && form.package_has_flight)) && (
+                  <>
+                    <h3 style={sectionTitle}>{form.reservation_type === 'package' ? '7' : '3'}. Uçak Bileti Bilgileri</h3>
+                    <div style={grid} className="yu-grid">
+                      <Input v={form.flight_code} set={(x: string) => update('flight_code', x)} p="Uçuş kodu / PNR" />
+                      <Input v={form.package_flight_note} set={(x: string) => update('package_flight_note', x)} p="Rota / bilet notu" />
+                      <input style={input} type="date" value={form.service_date} onChange={(e) => update('service_date', e.target.value)} />
+                    </div>
+                  </>
+                )}
 
+                <h3 style={sectionTitle}>Ek Servis</h3>
+                <div style={grid} className="yu-grid">
                   <Select v={form.extra_service_name} set={(x: string) => update('extra_service_name', x)} p="Ek Servis Seç / Yok" list={extraServices} />
-
-                  <Input v={form.pax_adult} set={(x: string) => update('pax_adult', x)} p="PAX" />
                 </div>
 
                 <h3 style={sectionTitle}>3. Ücret Bilgileri</h3>
