@@ -645,7 +645,8 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
         String(r.customer_phone || '').toLowerCase().includes(search) ||
         String(r.hotel_name || '').toLowerCase().includes(search) ||
         String(r.agency_name || '').toLowerCase().includes(search) ||
-        String(r.region_name || '').toLowerCase().includes(search)
+        String(r.region_name || '').toLowerCase().includes(search) ||
+        String(r.reservation_type || '').toLowerCase().includes(search)
 
       const agencyOk = filterAgency === 'all' || r.agency_name === filterAgency
       const hotelOk = filterHotel === 'all' || r.hotel_name === filterHotel
@@ -682,7 +683,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
 
   function exportRowsToCsv(rows: any[], fileName: string) {
     const headers = [
-      'Voucher No', 'Acente', 'Rezervasyon Tipi', 'Tip', 'Tarih', 'Müşteri', 'Telefon', 'Otel', 'Bölge',
+      'Voucher No', 'Acente', 'Tip', 'Tarih', 'Müşteri', 'Telefon', 'Otel', 'Bölge',
       'Uçuş', 'Alış Noktası', 'PAX', 'Araç Tipi', 'Şoför', 'Plaka',
       'Karşılama Durumu', 'Operasyon Notu', 'Ödeme', 'Operasyon', 'Satış USD', 'Maliyet USD', 'Kâr USD',
     ]
@@ -690,7 +691,6 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
     const csvRows = rows.map((r: any) => [
       r.reservation_code || '',
       r.agency_name || '',
-      r.reservation_type || '',
       r.operation_type === 'arrival' ? 'Geliş' : 'Dönüş',
       r.service_date || '',
       r.customer_name || '',
@@ -1041,14 +1041,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   <DetailItem label="Müşteri" value={selectedReservation.customer_name} />
                   <DetailItem label="Telefon" value={selectedReservation.customer_phone} />
                   <DetailItem label="Acente" value={selectedReservation.agency_name} />
-                  <DetailItem label="Rezervasyon Tipi" value={
-                    selectedReservation.reservation_type === 'transfer' ? 'Transfer' :
-                    selectedReservation.reservation_type === 'hotel' ? 'Otel' :
-                    selectedReservation.reservation_type === 'tour' ? 'Tur' :
-                    selectedReservation.reservation_type === 'package' ? 'Paket' :
-                    selectedReservation.reservation_type === 'flight' ? 'Uçak Bileti' :
-                    selectedReservation.reservation_type || '-'
-                  } />
+                  <DetailItem label="Rezervasyon Tipi" value={selectedReservation.reservation_type} />
                   <DetailItem label="Otel" value={selectedReservation.hotel_name} />
                   <DetailItem label="Bölge" value={selectedReservation.region_name} />
                   <DetailItem label="Operasyon Tipi" value={selectedReservation.operation_type === 'arrival' ? 'Geliş' : 'Dönüş'} />
@@ -1119,7 +1112,6 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                     <option value="flight">Uçak Bileti</option>
                     <option value="other">Diğer</option>
                   </select>
-
                   <Input v={form.customer_name} set={(x: string) => update('customer_name', x)} p="Müşteri adı" />
                   <Input v={form.customer_phone} set={(x: string) => update('customer_phone', x)} p="Telefon / WhatsApp" />
                   <Select v={form.agency_name} set={(x: string) => update('agency_name', x)} p="Acente Seç" list={agencies} />
