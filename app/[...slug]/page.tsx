@@ -1,6 +1,5 @@
 import Link from "next/link";
 import ReservationWorkspace from "@/components/ReservationWorkspace";
-import Link from "next/link";
 
 type PageConfig = {
   title: string;
