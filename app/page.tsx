@@ -20,6 +20,11 @@ export default function Page() {
   const [drivers, setDrivers] = useState<any[]>([])
   const [fleet, setFleet] = useState<any[]>([])
   const [finance, setFinance] = useState<any[]>([])
+  const [tours, setTours] = useState<any[]>([])
+  const [packages, setPackages] = useState<any[]>([])
+  const [roomTypes, setRoomTypes] = useState<any[]>([])
+  const [boardTypes, setBoardTypes] = useState<any[]>([])
+  const [extraServices, setExtraServices] = useState<any[]>([])
 
   const [companySettings, setCompanySettings] = useState<any>({
     company_name: 'YU Travel',
@@ -48,6 +53,11 @@ export default function Page() {
 
  const emptyForm = {
   reservation_type: 'transfer',
+  tour_name: '',
+  package_name: '',
+  room_type: '',
+  board_type: '',
+  extra_service_name: '',
   customer_name: '',
   customer_phone: '',
   agency_name: '',
@@ -87,6 +97,11 @@ export default function Page() {
   const [newVehicleType, setNewVehicleType] = useState('')
   const [newDriver, setNewDriver] = useState('')
   const [newPlate, setNewPlate] = useState('')
+  const [newTour, setNewTour] = useState('')
+  const [newPackage, setNewPackage] = useState('')
+  const [newRoomType, setNewRoomType] = useState('')
+  const [newBoardType, setNewBoardType] = useState('')
+  const [newExtraService, setNewExtraService] = useState('')
 
   useEffect(() => {
     checkSession()
@@ -137,6 +152,11 @@ export default function Page() {
     const dr = await supabase.from('drivers').select('*').order('created_at', { ascending: false })
     const fl = await supabase.from('vehicles').select('*').order('created_at', { ascending: false })
     const fn = await supabase.from('finance_transactions').select('*').order('transaction_date', { ascending: false })
+    const tr = await supabase.from('tours').select('*').order('created_at', { ascending: false })
+    const pk = await supabase.from('packages').select('*').order('created_at', { ascending: false })
+    const rt = await supabase.from('room_types').select('*').order('created_at', { ascending: false })
+    const bt = await supabase.from('board_types').select('*').order('created_at', { ascending: false })
+    const es = await supabase.from('extra_services').select('*').order('created_at', { ascending: false })
     const cs = await supabase.from('company_settings').select('*').limit(1).maybeSingle()
 
     if (res.data) setReservations(res.data)
@@ -147,6 +167,11 @@ export default function Page() {
     if (dr.data) setDrivers(dr.data)
     if (fl.data) setFleet(fl.data)
     if (fn.data) setFinance(fn.data)
+    if (tr.data) setTours(tr.data)
+    if (pk.data) setPackages(pk.data)
+    if (rt.data) setRoomTypes(rt.data)
+    if (bt.data) setBoardTypes(bt.data)
+    if (es.data) setExtraServices(es.data)
     if (cs.data) setCompanySettings(cs.data)
   }
 
@@ -221,6 +246,11 @@ export default function Page() {
           : form.reservation_type === 'flight'
           ? 'Flight Ticket'
           : 'Other',
+      tour_name: form.tour_name,
+      package_name: form.package_name,
+      room_type: form.room_type,
+      board_type: form.board_type,
+      extra_service_name: form.extra_service_name,
       hotel_name: form.hotel_name,
       region_name: form.region_name,
       pax_adult: pax,
@@ -313,6 +343,11 @@ export default function Page() {
 
     setForm({
       reservation_type: r.reservation_type || 'transfer',
+      tour_name: r.tour_name || '',
+      package_name: r.package_name || '',
+      room_type: r.room_type || '',
+      board_type: r.board_type || '',
+      extra_service_name: r.extra_service_name || '',
       customer_name: r.customer_name || '',
       customer_phone: r.customer_phone || '',
       agency_name: r.agency_name || '',
@@ -645,8 +680,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
         String(r.customer_phone || '').toLowerCase().includes(search) ||
         String(r.hotel_name || '').toLowerCase().includes(search) ||
         String(r.agency_name || '').toLowerCase().includes(search) ||
-        String(r.region_name || '').toLowerCase().includes(search) ||
-        String(r.reservation_type || '').toLowerCase().includes(search)
+        String(r.region_name || '').toLowerCase().includes(search)
 
       const agencyOk = filterAgency === 'all' || r.agency_name === filterAgency
       const hotelOk = filterHotel === 'all' || r.hotel_name === filterHotel
@@ -781,6 +815,11 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
       ...vehicleTypes.map((x: any) => ['Araç Tipi', x.name]),
       ...drivers.map((x: any) => ['Şoför', x.name]),
       ...fleet.map((x: any) => ['Plaka', x.plate]),
+      ...tours.map((x: any) => ['Tur', x.name]),
+      ...packages.map((x: any) => ['Paket', x.name]),
+      ...roomTypes.map((x: any) => ['Oda Tipi', x.name]),
+      ...boardTypes.map((x: any) => ['Konaklama Tipi', x.name]),
+      ...extraServices.map((x: any) => ['Ek Servis', x.name]),
     ]
 
     const csvContent = [headers, ...rows]
@@ -1041,10 +1080,15 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                   <DetailItem label="Müşteri" value={selectedReservation.customer_name} />
                   <DetailItem label="Telefon" value={selectedReservation.customer_phone} />
                   <DetailItem label="Acente" value={selectedReservation.agency_name} />
-                  <DetailItem label="Rezervasyon Tipi" value={selectedReservation.reservation_type} />
                   <DetailItem label="Otel" value={selectedReservation.hotel_name} />
                   <DetailItem label="Bölge" value={selectedReservation.region_name} />
+                  <DetailItem label="Rezervasyon Tipi" value={selectedReservation.reservation_type} />
                   <DetailItem label="Operasyon Tipi" value={selectedReservation.operation_type === 'arrival' ? 'Geliş' : 'Dönüş'} />
+                  <DetailItem label="Tur" value={selectedReservation.tour_name} />
+                  <DetailItem label="Paket" value={selectedReservation.package_name} />
+                  <DetailItem label="Oda Tipi" value={selectedReservation.room_type} />
+                  <DetailItem label="Konaklama Tipi" value={selectedReservation.board_type} />
+                  <DetailItem label="Ek Servis" value={selectedReservation.extra_service_name} />
                   <DetailItem label="Tarih" value={selectedReservation.service_date} />
                   <DetailItem label="Uçuş" value={selectedReservation.flight_code} />
                   <DetailItem label="Alış Noktası" value={selectedReservation.pickup_location} />
@@ -1112,6 +1156,7 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                     <option value="flight">Uçak Bileti</option>
                     <option value="other">Diğer</option>
                   </select>
+
                   <Input v={form.customer_name} set={(x: string) => update('customer_name', x)} p="Müşteri adı" />
                   <Input v={form.customer_phone} set={(x: string) => update('customer_phone', x)} p="Telefon / WhatsApp" />
                   <Select v={form.agency_name} set={(x: string) => update('agency_name', x)} p="Acente Seç" list={agencies} />
@@ -1165,6 +1210,23 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
                       />
                     </>
                   )}
+
+                  {form.reservation_type === 'tour' && (
+                    <Select v={form.tour_name} set={(x: string) => update('tour_name', x)} p="Tur Seç" list={tours} />
+                  )}
+
+                  {form.reservation_type === 'package' && (
+                    <Select v={form.package_name} set={(x: string) => update('package_name', x)} p="Paket Seç" list={packages} />
+                  )}
+
+                  {form.reservation_type === 'hotel' && (
+                    <>
+                      <Select v={form.room_type} set={(x: string) => update('room_type', x)} p="Oda Tipi Seç" list={roomTypes} />
+                      <Select v={form.board_type} set={(x: string) => update('board_type', x)} p="Konaklama Tipi Seç" list={boardTypes} />
+                    </>
+                  )}
+
+                  <Select v={form.extra_service_name} set={(x: string) => update('extra_service_name', x)} p="Ek Servis Seç / Yok" list={extraServices} />
 
                   <Input v={form.pax_adult} set={(x: string) => update('pax_adult', x)} p="PAX" />
                 </div>
@@ -1431,6 +1493,11 @@ Thank you for choosing ${companySettings.company_name || 'YU Travel'}.
               <Definition table="vehicle_types" title="Araç Tipi" value={newVehicleType} set={setNewVehicleType} save={() => addOrUpdateDefinition('vehicle_types', newVehicleType, setNewVehicleType)} list={vehicleTypes} edit={startEditDefinition} del={deleteDefinition} />
               <Definition table="drivers" title="Şoför" value={newDriver} set={setNewDriver} save={() => addOrUpdateDefinition('drivers', newDriver, setNewDriver)} list={drivers} edit={startEditDefinition} del={deleteDefinition} />
               <PlateDefinition value={newPlate} set={setNewPlate} save={addOrUpdatePlate} list={fleet} edit={startEditPlate} del={deletePlate} />
+              <Definition table="tours" title="Tur" value={newTour} set={setNewTour} save={() => addOrUpdateDefinition('tours', newTour, setNewTour)} list={tours} edit={startEditDefinition} del={deleteDefinition} />
+              <Definition table="packages" title="Paket" value={newPackage} set={setNewPackage} save={() => addOrUpdateDefinition('packages', newPackage, setNewPackage)} list={packages} edit={startEditDefinition} del={deleteDefinition} />
+              <Definition table="room_types" title="Oda Tipi" value={newRoomType} set={setNewRoomType} save={() => addOrUpdateDefinition('room_types', newRoomType, setNewRoomType)} list={roomTypes} edit={startEditDefinition} del={deleteDefinition} />
+              <Definition table="board_types" title="Konaklama Tipi" value={newBoardType} set={setNewBoardType} save={() => addOrUpdateDefinition('board_types', newBoardType, setNewBoardType)} list={boardTypes} edit={startEditDefinition} del={deleteDefinition} />
+              <Definition table="extra_services" title="Ek Servis" value={newExtraService} set={setNewExtraService} save={() => addOrUpdateDefinition('extra_services', newExtraService, setNewExtraService)} list={extraServices} edit={startEditDefinition} del={deleteDefinition} />
             </div>
           )}
 
